@@ -20,11 +20,10 @@ public class UserController {
 	private UserService us = new UserService();
 	Logger log = Logger.getRootLogger();
 	
-	public void delegateGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	public void delegateGet(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException {
 		String userURL = request.getRequestURI().substring(request.getContextPath().length() + "/login".length());
 		
 		if ("/users".equals(userURL)) {
-
 			try {
 				List<User> allUsers = us.findAll();
 				ObjectMapper om = new ObjectMapper();
@@ -67,5 +66,6 @@ public class UserController {
                 e.printStackTrace();
             }
 		}
+		
 	}
 }

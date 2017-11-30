@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -16,8 +15,7 @@ import util.ConnectionUtil;
 public class UserDaoJdbc implements UserDao {
 	private Logger log = Logger.getRootLogger();
 	private ConnectionUtil conUtil = ConnectionUtil.getconnectionUtil();
-	Properties p = new Properties();
-	private ReimbursementDao rd = new ReimbursementDaoJdbc();
+	
 	
 	@Override
 	public void saveUser(User u) throws SQLException {

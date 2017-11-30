@@ -1,0 +1,10 @@
+table{
+   overflow: scroll;
+   text-align: center;
+   margin: auto;
+   max-height: 50%;
+}
+
+#reimbPopUp{
+	display: none;
+}

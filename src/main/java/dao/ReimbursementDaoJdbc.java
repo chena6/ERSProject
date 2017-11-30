@@ -16,18 +16,17 @@ import util.ConnectionUtil;
 public class ReimbursementDaoJdbc implements ReimbursementDao {
 	private Logger log = Logger.getRootLogger();
 	private ConnectionUtil conUtil = ConnectionUtil.getconnectionUtil();
-	
+
 	@Override
 	public void saveReimbursement(Reimbursement r) throws SQLException {
 		log.debug("attempt to insert user to database");
 		Connection con = conUtil.getConnection();
 		PreparedStatement insertReimbursement = null;
-		
-		String insertStatement =
-				"INSERT INTO Reimbursements" + 
-				" (reimbID, amount, submitted, resolved, receipt, reimbAuthor, reimbResolver, statusID, typeID)" +
-				" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-		
+
+		String insertStatement = "INSERT INTO Reimbursements"
+				+ " (reimbID, amount, submitted, resolved, receipt, reimbAuthor, reimbResolver, statusID, typeID)"
+				+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
 		try {
 			con.setAutoCommit(false);
 			Timestamp submittedTS = Timestamp.valueOf(r.getSubmitted());
@@ -42,27 +41,27 @@ public class ReimbursementDaoJdbc implements ReimbursementDao {
 			insertReimbursement.setInt(7, r.getReimbResolver());
 			insertReimbursement.setInt(8, r.getStatusID());
 			insertReimbursement.setInt(9, r.getTypeID());
-			
+
 			insertReimbursement.executeUpdate();
-			
+
 			ResultSet keys = insertReimbursement.getGeneratedKeys();
 			if (keys.next()) {
 				log.info("successfully added user");
 			}
-			
+
 			con.commit();
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 			if (con != null) {
 				try {
 					log.debug("failed to save user, roll back transaction");
 					con.rollback();
-				} catch(SQLException ex) {
+				} catch (SQLException ex) {
 					e.printStackTrace();
 				}
 			}
-			
+
 		} finally {
 			if (insertReimbursement != null) {
 				insertReimbursement.close();
@@ -76,53 +75,57 @@ public class ReimbursementDaoJdbc implements ReimbursementDao {
 		Connection con = conUtil.getConnection();
 		PreparedStatement manage = null;
 		String setState = ad;
-		
-		String manageStatement =
-				"UPDATE reimbursements SET reimbstatus = ?";
+
+		String manageStatement = "UPDATE reimbursements SET reimbstatus = ?";
 		try {
 			manage = con.prepareStatement(manageStatement);
 			manage.setString(1, setState);
 			manage.executeUpdate();
-		} catch (SQLException e){
+		} catch (SQLException e) {
 			e.printStackTrace();
 			log.debug("could not approve/disapprove reimbursement");
 		}
 	}
 
-	@Override
 	public List<Reimbursement> findAll() throws SQLException {
-		List<Reimbursement> reimbursements = new ArrayList<Reimbursement>();
 		Connection con = conUtil.getConnection();
+		List<Reimbursement> reimbursements = new ArrayList<Reimbursement>();
 		PreparedStatement getAll = null;
-		
-		String getAllStatement =
-				"SELECT * FROM reimbursements";
-		
+
+		String getAllStatement = "SELECT * FROM reimbursements";
+
 		try {
 			getAll = con.prepareStatement(getAllStatement);
 			ResultSet rs = getAll.executeQuery();
-			
+
+			log.debug("query executed");
+
 			while (rs.next()) {
 				Reimbursement r = extractReimbursement(rs);
 				reimbursements.add(r);
 			}
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-	
+
 		return reimbursements;
 	}
-	
+
 	private Reimbursement extractReimbursement(ResultSet rs) throws SQLException {
 		Reimbursement r = new Reimbursement();
+		r.setReimbID(rs.getInt("reimbid"));
 		r.setAmount(rs.getDouble("amount"));
 		r.setReceipt(rs.getBlob("receipt"));
 		r.setReimbAuthor(rs.getInt("reimbauthor"));
 		r.setStatusID(rs.getInt("statusid"));
 		r.setSubmitted(rs.getTimestamp("submitted").toLocalDateTime());
+		if (rs.getTimestamp("resolved") != null) {
+			r.setResolved(rs.getTimestamp("resolved").toLocalDateTime());
+		}
 		r.setTypeID(rs.getInt("typeid"));
-		
+		r.setDescription(rs.getString("description"));
+
 		return r;
 	}
 
@@ -131,24 +134,23 @@ public class ReimbursementDaoJdbc implements ReimbursementDao {
 		List<Reimbursement> reimbursements = new ArrayList<Reimbursement>();
 		Connection con = conUtil.getConnection();
 		PreparedStatement findReimbursement = null;
-		
-		String findReimbursementStatement =
-				"SELECT * FROM reimbursements WHERE reimbauthor = ?";
-		
+
+		String findReimbursementStatement = "SELECT * FROM reimbursements WHERE reimbauthor = ?";
+
 		try {
 			findReimbursement = con.prepareStatement(findReimbursementStatement);
 			findReimbursement.setInt(1, uid);
 			ResultSet rs = findReimbursement.executeQuery();
-			
+
 			while (rs.next()) {
 				Reimbursement r = extractReimbursement(rs);
 				reimbursements.add(r);
 			}
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-	
+
 		return reimbursements;
 	}
 
@@ -158,17 +160,16 @@ public class ReimbursementDaoJdbc implements ReimbursementDao {
 		Connection con = conUtil.getConnection();
 		PreparedStatement findPending = null;
 		ReimbursementStatusDaoJdbc rsd = new ReimbursementStatusDaoJdbc();
-		
-		String findPendingStatement = 
-				"SELECT * FROM reimbursements WHERE reimbauthor = ? AND statusid = "
+
+		String findPendingStatement = "SELECT * FROM reimbursements WHERE reimbauthor = ? AND statusid = "
 				+ rsd.getStatus("Pending");
-		
+
 		try {
 			findPending = con.prepareStatement(findPendingStatement);
-		
-			findPending.setInt(1,  uid);
+
+			findPending.setInt(1, uid);
 			ResultSet rs = findPending.executeQuery();
-		
+
 			while (rs.next()) {
 				Reimbursement r = extractReimbursement(rs);
 				pendingReimbursements.add(r);

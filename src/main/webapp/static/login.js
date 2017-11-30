@@ -1,7 +1,7 @@
 function login(){
-	let username = document.getElementById('username').value;
-	let password = document.getElementById('password').value;
-	
+	let username = document.getElementById('inputEmail').value;
+	let password = document.getElementById('inputPassword').value;
+
 	let user = {
 			"username" : username,
 			"password" : password
