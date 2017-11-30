@@ -5,43 +5,40 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
 import beans.Reimbursement;
+import beans.User;
 import util.ConnectionUtil;
 
 public class ReimbursementDaoJdbc implements ReimbursementDao {
 	private Logger log = Logger.getRootLogger();
 	private ConnectionUtil conUtil = ConnectionUtil.getconnectionUtil();
-
+	private ReimbursementTypeDao rt = new ReimbursementTypeDaoJdbc(); 
 	@Override
-	public void saveReimbursement(Reimbursement r) throws SQLException {
+	public void saveReimbursement(Reimbursement r, User u) throws SQLException {
 		log.debug("attempt to insert user to database");
 		Connection con = conUtil.getConnection();
 		PreparedStatement insertReimbursement = null;
 
 		String insertStatement = "INSERT INTO Reimbursements"
-				+ " (reimbID, amount, submitted, resolved, receipt, reimbAuthor, reimbResolver, statusID, typeID)"
-				+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				+ " (amount, submitted, reimbAuthor, typeID, description)"
+				+ " VALUES (?, ?, ?, ?, ?)";
 
 		try {
 			con.setAutoCommit(false);
-			Timestamp submittedTS = Timestamp.valueOf(r.getSubmitted());
-			Timestamp resolvedTS = Timestamp.valueOf(r.getResolved());
+			LocalDateTime now = LocalDateTime.now();
+			Timestamp submittedTS = Timestamp.valueOf(now);
 			insertReimbursement = con.prepareStatement(insertStatement);
-			insertReimbursement.setInt(1, r.getReimbID());
-			insertReimbursement.setDouble(2, r.getAmount());
-			insertReimbursement.setTimestamp(3, submittedTS);
-			insertReimbursement.setTimestamp(4, resolvedTS);
-			insertReimbursement.setBlob(5, r.getReceipt());
-			insertReimbursement.setInt(6, r.getReimbAuthor());
-			insertReimbursement.setInt(7, r.getReimbResolver());
-			insertReimbursement.setInt(8, r.getStatusID());
-			insertReimbursement.setInt(9, r.getTypeID());
-
+			insertReimbursement.setDouble(1, r.getAmount());
+			insertReimbursement.setTimestamp(2, submittedTS);
+			insertReimbursement.setInt(3, u.getUserID());
+			insertReimbursement.setInt(4, r.getTypeID());
+			insertReimbursement.setString(5, r.getDescription());
 			insertReimbursement.executeUpdate();
 
 			ResultSet keys = insertReimbursement.getGeneratedKeys();
@@ -71,16 +68,28 @@ public class ReimbursementDaoJdbc implements ReimbursementDao {
 	}
 
 	@Override
-	public void manageReimbursement(int rid, String ad) throws SQLException {
+	public void manageReimbursement(List<Reimbursement> rl) throws SQLException {
 		Connection con = conUtil.getConnection();
 		PreparedStatement manage = null;
-		String setState = ad;
-
-		String manageStatement = "UPDATE reimbursements SET reimbstatus = ?";
+		log.trace("approving reimbusement");
+		String manageStatement = "UPDATE reimbursements SET statusid = ?, resolved = ? WHERE reimbid = ?";
 		try {
-			manage = con.prepareStatement(manageStatement);
-			manage.setString(1, setState);
-			manage.executeUpdate();
+			for (Reimbursement r : rl) {
+				Timestamp now = null;
+				int setState = r.getStatusID();
+				log.debug(setState);
+				int setID = r.getReimbID();
+				log.debug(setID);
+				if (r.getResolved() != null) {
+					now = Timestamp.valueOf(r.getResolved());
+				} 
+				manage = con.prepareStatement(manageStatement);
+				manage.setInt(1, setState);
+				manage.setTimestamp(2, now);
+				manage.setInt(3, setID);
+				manage.executeUpdate();
+			}
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 			log.debug("could not approve/disapprove reimbursement");
@@ -129,7 +138,7 @@ public class ReimbursementDaoJdbc implements ReimbursementDao {
 		return r;
 	}
 
-	@Override
+	
 	public List<Reimbursement> findUserReimbursements(int uid) throws SQLException {
 		List<Reimbursement> reimbursements = new ArrayList<Reimbursement>();
 		Connection con = conUtil.getConnection();

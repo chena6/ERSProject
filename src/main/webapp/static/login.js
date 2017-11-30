@@ -17,7 +17,6 @@ function login(){
 	}
 		
 	xhttp.open('POST', '../login');
-	
 	xhttp.send(JSON.stringify(user));
 	
 }

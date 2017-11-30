@@ -11,11 +11,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 
 import beans.Reimbursement;
@@ -56,6 +56,9 @@ public class ReimbursementController {
 			try {
 				List<Reimbursement> myReimb = rs.getReimb(u.getUserID());
 				ObjectMapper om = new ObjectMapper();
+				om.findAndRegisterModules();
+		        om.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+		        om.setDateFormat(new StdDateFormat());
 				ObjectWriter ow = om.writer().withDefaultPrettyPrinter();
 				String json = ow.writeValueAsString(myReimb);
 				PrintWriter writer = response.getWriter();
@@ -76,15 +79,17 @@ public class ReimbursementController {
 		String reimburseURL = request.getRequestURI()
 				.substring(request.getContextPath().length() + "/reimbursements".length());
 
-		if ("".equals(reimburseURL)) {
+		if ("/addReimburse".equals(reimburseURL)) {
 			try {
 				String json = request.getReader().lines().reduce((acc, cur) -> acc + cur).get();
 				log.trace("jason received = " + json);
 				ObjectMapper om = new ObjectMapper();
 				Reimbursement r = om.readValue(json, Reimbursement.class);
+				User u = (User) request.getSession().getAttribute("user");
 				log.trace("object created from json = " + r);
+				log.trace("user u created from session = " + u);
 
-				rs.save(r);
+				rs.save(r, u);
 			} catch (JsonParseException e) {
 
 				e.printStackTrace();
@@ -98,9 +103,19 @@ public class ReimbursementController {
 				e.printStackTrace();
 			}
 		}
-		
 		if ("/approve".equals(reimburseURL)) {
-			
+			log.debug("request approve reimbursements received");
+            
+            String json = request.getReader().lines().reduce((acc, cur) -> acc + cur).get();
+            log.trace("json received: " + json);
+            
+            ObjectMapper om = new ObjectMapper();
+            List<Reimbursement> rl = om.readValue(json, new TypeReference<List<Reimbursement>>(){});
+            log.trace(rl);
+            rs.manageReimb(rl);
+            
+            
+            
 		}
 
 	}

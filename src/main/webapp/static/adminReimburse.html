@@ -18,7 +18,9 @@
 	crossorigin="anonymous">
 
 <!-- Custom styles for this template -->
+
 <link href="home.css" rel="stylesheet">
+
 <link href="reimbursements.css" rel="stylesheet">
 </head>
 
@@ -47,21 +49,26 @@
 				<div class="container">
 					<h1 class="cover-heading">My Reimbursements
 					</h1>
-					<div class="cover-body">
-						<table id="reimbTable" class="table table-dark" onload=loadReimbursements()>
-							<thead id="reimbursementHead">
+					<div id='allReimb' class="cover-body">
+					
+					<input type="search" class="light-table-filter" data-table="order-table" placeholder="Search">		
+					
+						<table id="reimbTable" class="table-dark order-table table" data-role="table" id="movie-table" data-filter="true" data-input="#filterTable-input">
+							<thead>
 								<tr>
 									<th>#</th>
+									<th>AuthorID</th>
 									<th>Amount</th>
 									<th>Time Submitted</th>
 									<th>Time Resolved</th>
 									<th>Status</th>
 									<th>Type</th>
 									<th>Description</th>
+									<th>Approve</th>
 								</tr>
 							</thead>
-							<tbody id="reimbursementBody">
-
+							<tbody id="reimbursementBody" class="list">
+								
 							</tbody>
 						</table>
 					</div>
@@ -78,7 +85,7 @@
 								<form onsubmit="addReimb()">
 									<div class="form-group">
 										<label for="Amount">Amount</label> <input class="form-control"
-											placeholder="$" type="number" id="reimbAmount" required>
+											placeholder="$" type="number" step="0.01" id="reimbAmount" required>
 									</div>
 									<div class="form-group">
 										<label for="Type">Type</label> <select class="form-control"
@@ -106,6 +113,7 @@
 				<button type="button" id="addReimb" class="btn btn-dark"
 					data-toggle="modal" data-target="#reimbModal">Add
 					Reimbursement</button>
+				<button type="submit" id="approveReimb" onclick=approve() class="btn btn-dark">Approve/Decline Reimbursements</button>
 				</main>
 			</div>
 		</div>
@@ -126,7 +134,9 @@
 		integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
 		crossorigin="anonymous"></script>
 	<script src="reimbursement.js"></script>
-	<script src="logout.js"></script>
-	<script type="text/javascript">window.onload = loadReimbursements;</script>
+	<script src="logout.js"><</script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+	
+	<script type="text/javascript">window.onload = loadAdminReimbursements();</script>
 </body>
 </html>

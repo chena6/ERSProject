@@ -19,7 +19,6 @@ a:hover {
   border: .05rem solid #fff;
 }
 
-
 /*
  * Base structure
  */
@@ -76,6 +75,7 @@ body {
   color: rgba(255,255,255,.5);
   background-color: transparent;
   border-bottom: .25rem solid transparent;
+  overflow: hidden;
 }
 
 .nav-masthead .nav-link:hover,
@@ -101,10 +101,27 @@ body {
   }
 }
 
+.container	 {
+	margin-top: 60px;
+}
 
+.ui-header .ui-title {margin-right:20px;margin-left:20px;}
+
+.ui-footer .ui-title {margin-right:20px;margin-left:20px;white-space:normal;}
 /*
  * Cover
  */
+ #myInput {
+    background-position: 10px 12px; /* Position the search icon */
+    background-repeat: no-repeat; /* Do not repeat the icon image */
+    width: 100%; /* Full-width */
+    font-size: 16px; /* Increase font-size */
+    padding: 12px 20px 12px 40px; /* Add some padding */
+    border: 1px solid #ddd; /* Add a grey border */
+    margin-bottom: 12px; /* Add some space below the input */
+}
+ 
+ 
 .cover-heading{
 	padding: 1.5rem;
 }

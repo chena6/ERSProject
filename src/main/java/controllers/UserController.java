@@ -21,9 +21,9 @@ public class UserController {
 	Logger log = Logger.getRootLogger();
 	
 	public void delegateGet(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException {
-		String userURL = request.getRequestURI().substring(request.getContextPath().length() + "/login".length());
+		String actualURL = request.getRequestURI().substring(request.getContextPath().length());
 		
-		if ("/users".equals(userURL)) {
+		if ("/login/users".equals(actualURL)) {
 			try {
 				List<User> allUsers = us.findAll();
 				ObjectMapper om = new ObjectMapper();
@@ -37,7 +37,7 @@ public class UserController {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-		}		
+		}
 	}
 	public void processPost(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException{
 		String actualURL = request.getRequestURI().substring(request.getContextPath().length());
@@ -66,6 +66,12 @@ public class UserController {
                 e.printStackTrace();
             }
 		}
+		if ("/logout".equals(actualURL)) {
+			log.trace("logging out");
+			request.getSession().invalidate();
+		}
+		
+		
 		
 	}
 }
